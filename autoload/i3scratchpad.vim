@@ -54,18 +54,22 @@ endfunction
 
 function! i3scratchpad#cycle_scratchpads()
     " Check if there is a floating window in the current tab
-    let floating_exists = 0
     let wins = nvim_tabpage_list_wins(0)
     for win in wins
         let win_is_floating = nvim_win_get_config(win)['relative'] != ''
         if win_is_floating
-            let floating_exists = 1
-            let bufnr = winbufnr(0)
-            exe nvim_win_get_number(win)."wincmd c"
-            call add(s:floating_buffers, bufnr)
+            let winnr = nvim_win_get_number(win)
+            if winnr == winnr()
+                let bufnr = winbufnr(0)
+                exe winnr."wincmd c"
+                call add(s:floating_buffers, bufnr)
+            else
+                exe winnr."wincmd w"
+            endif
+            return
         endif
     endfor
-    if !floating_exists && !empty(s:floating_buffers)
+    if !empty(s:floating_buffers)
         let bufnr = s:floating_buffers[0]
         call s:focus_floating(bufnr)
         call remove(s:floating_buffers, 0)
